@@ -3,3 +3,8 @@
 struct GfxViewParms;
 
 void RB_DrawDebug(GfxViewParms* viewParms);
+
+void CM_DrawCollisionPoly(const std::vector<fvec3>& points, const float* colorFloat, bool depthtest);
+void CM_DrawCollisionEdges(const std::vector<fvec3>& points, const float* colorFloat, bool depthtest);
+void CM_ShowCollision(GfxViewParms* viewParms);
+

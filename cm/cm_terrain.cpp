@@ -9,7 +9,16 @@
 
 void CM_LoadAllTerrainToClipMapWithFilter(const std::string& filter)
 {
-	CM_DiscoverTerrain({ filter });
+	std::unique_lock<std::mutex> lock(CClipMap::GetLock());
+
+	CClipMap::ClearAllOfType(cm_geomtype::terrain);
+
+	const auto filters = CM_TokenizeFilters(filter);
+
+	if (filters.empty())
+		return;
+
+	CM_DiscoverTerrain(filters);
 }
 
 bool CM_AabbTreeHasCollision(const CollisionAabbTree* tree)

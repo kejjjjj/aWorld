@@ -1,5 +1,7 @@
 #include "cm/cm_brush.hpp"
 #include "cm/cm_terrain.hpp"
+#include "cm/cm_typedefs.hpp"
+#include "cm/cm_export.hpp"
 
 #include "cg/cg_local.hpp"
 #include "cg/cg_memory.hpp"
@@ -29,6 +31,9 @@ using namespace std::chrono_literals;
 *reinterpret_cast<type*>((DWORD)data - sizeof(FARPROC)) = value;\
 return 0;
 
+static void ClearTerrain() { CClipMap::ClearAllOfTypeThreadSafe(cm_geomtype::terrain); }
+static void ClearBrushes() { CClipMap::ClearAllOfTypeThreadSafe(cm_geomtype::brush); }
+
 static void NVar_Setup([[maybe_unused]]NVarTable* table)
 {
     const auto showCollision = table->AddImNvar<bool, ImCheckbox>("Show Collision", false, NVar_ArithmeticToString<bool>);
@@ -43,15 +48,24 @@ static void NVar_Setup([[maybe_unused]]NVarTable* table)
 
         const auto brush = showCollision->AddImChild<std::string, ImInputText>("Brush Filter", "", NVar_String, 
             ImGuiInputTextFlags_EnterReturnsTrue, CM_LoadAllBrushWindingsToClipMapWithFilter);
+        
+        brush->AddWidget<bool, ImButton>("Clear", same_line, ClearBrushes);
+
         {
             brush->AddImChild<bool, ImCheckbox>("Only Elevators", false, NVar_ArithmeticToString<bool>);
             brush->AddImChild<bool, ImCheckbox>("Only Bounces", false, NVar_ArithmeticToString<bool>);
         }
 
-        showCollision->AddImChild<std::string, ImInputText>("Terrain Filter", "", NVar_String,
+
+        const auto terrain = showCollision->AddImChild<std::string, ImInputText>("Terrain Filter", "", NVar_String,
             ImGuiInputTextFlags_EnterReturnsTrue, CM_LoadAllTerrainToClipMapWithFilter);
 
+        terrain->AddWidget<bool, ImButton>("Clear", same_line, ClearTerrain);
+
+
     }
+
+    table->AddImNvar<bool, ImButton>("Map Export", false, NVar_ArithmeticToString<bool>, CM_MapExport);
 
 
 }
@@ -111,8 +125,6 @@ void CG_Init()
 
     COD4X::initialize();
 
-    //CMain::Shared::GetFunctionOrExit("AddEndSceneRenderer")->As<void, std::function<void(IDirect3DDevice9*)>&&>()->Call(R_EndScene);
-
     NVarTables::tables = CMain::Shared::GetFunctionOrExit("GetNVarTables")->As<nvar_tables_t*>()->Call();
     (*NVarTables::tables)[NVAR_TABLE_NAME] = std::make_unique<NVarTable>(NVAR_TABLE_NAME);
     const auto table = (*NVarTables::tables)[NVAR_TABLE_NAME].get();
@@ -128,9 +140,9 @@ void CG_Init()
         ->Call(std::make_unique<CWorldWindow>(NVAR_TABLE_NAME));
 
     //add the functions that need to be managed by the main module
-    CMain::Shared::GetFunctionOrExit("Queue_CG_DrawActive")->As<void, drawactive_t>()->Call(CG_DrawActive);
+    //CMain::Shared::GetFunctionOrExit("Queue_CG_DrawActive")->As<void, drawactive_t>()->Call(CG_DrawActive);
     //CMain::Shared::GetFunctionOrExit("Queue_CL_FinishMove")->As<void, finishmove_t>()->Call(CL_FinishMove);
-    //CMain::Shared::GetFunctionOrExit("Queue_RB_EndScene")->As<void, rb_endscene_t>()->Call(RB_DrawDebug);
+    CMain::Shared::GetFunctionOrExit("Queue_RB_EndScene")->As<void, rb_endscene_t>()->Call(RB_DrawDebug);
     CMain::Shared::GetFunctionOrExit("Queue_CG_Cleanup")->As<void, cg_cleanup_t>()->Call(CG_Cleanup);
 
 

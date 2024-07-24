@@ -2,14 +2,14 @@
 #include "cg/cg_local.hpp"
 #include "cm_brush.hpp"
 #include "cm_model.hpp"
+#include "cm_renderer.hpp"
 #include "cm_terrain.hpp"
 #include "cm_typedefs.hpp"
-#include <algorithm>
+#include "com/com_vector.hpp"
+#include "r/r_drawtools.hpp"
 
-#include <iostream>
+#include <algorithm>
 #include <ranges>
-#include <com/com_vector.hpp>
-#include <r/r_drawtools.hpp>
 
 LevelGeometry_t CClipMap::m_pLevelGeometry;
 std::unique_ptr<cm_geometry> CClipMap::m_pWipGeometry;
@@ -27,9 +27,12 @@ cm_winding::cm_winding(const std::vector<fvec3>& p, const fvec3& normal, [[maybe
 		fvec3 new_color = SetSurfaceBrightness(col, normal, rgp->world->sunParse.angles);
 		VectorCopy(new_color, color);
 	}
-	color[1] = 1.f;
-	color[2] = 0.f;
-	color[3] = 1.f;
+	else {
+		color[0] = col.x;
+		color[1] = col.y;
+		color[2] = col.z;
+	}
+
 	color[3] = 0.7f;
 
 	mins = get_mins();
@@ -280,18 +283,29 @@ bool CM_IsMatchingFilter(const std::unordered_set<std::string>& filters, const c
 void CM_LoadMap()
 {
 
-	CClipMap::Clear();
+	CClipMap::ClearThreadSafe();
 
 	for(const auto i : std::views::iota(0u, cm->numBrushes))
 		CM_LoadBrushWindingsToClipMap(&cm->brushes[i]);
 
 	CM_DiscoverTerrain({ "all" });
 
-	for (const auto i : std::views::iota(gfxWorld->dpvs.smodelCount)) {
+	for (const auto i : std::views::iota(0u, gfxWorld->dpvs.smodelCount)) {
 		CM_AddModel(&gfxWorld->dpvs.smodelDrawInsts[i]);
 	}
 }
+std::unordered_set<std::string> CM_TokenizeFilters(const std::string& filters)
+{
+	std::unordered_set<std::string> tokens;
+	std::stringstream stream(filters);
+	std::string token;
 
+	while (stream >> token) {
+		tokens.insert(token);
+	}
+
+	return tokens;
+}
 /***********************************************************************
  > 
 ***********************************************************************/

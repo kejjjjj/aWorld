@@ -23,9 +23,6 @@ bool CM_BrushHasCollision(const cbrush_t* brush);
 std::vector<std::string> CM_GetBrushMaterials(const cbrush_t* brush);
 
 bool CM_BrushInView(const cbrush_t* brush, struct cplane_s* frustumPlanes, int numPlanes=5);
-void CM_DrawCollisionPoly(const std::vector<fvec3>& points, const float* colorFloat, bool depthtest);
-void CM_DrawCollisionEdges(const std::vector<fvec3>& points, const float* colorFloat, bool depthtest);
-void CM_ShowCollision(GfxViewParms* viewParms);
 
 
 namespace __brush

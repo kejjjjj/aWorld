@@ -1,25 +1,31 @@
+#include "cg/cg_local.hpp"
+#include "cg/cg_offsets.hpp"
 #include "cm_brush.hpp"
 #include "cm_typedefs.hpp"
-#include "cg/cg_local.hpp"
-#include <com/com_vector.hpp>
-#include <cg/cg_offsets.hpp>
-
-#include "r/backend/rb_endscene.hpp"
+#include "com/com_vector.hpp"
 
 #include <algorithm>
 #include <ranges>
-#include <net/nvar_table.hpp>
 
 void CM_LoadAllBrushWindingsToClipMapWithFilter(const std::string& filter)
 {
-	for (unsigned short i = 0; i < cm->numBrushes; i++) {
+	std::unique_lock<std::mutex> lock(CClipMap::GetLock());
+
+	CClipMap::ClearAllOfType(cm_geomtype::brush);
+
+	const auto filters = CM_TokenizeFilters(filter);
+
+	if (filters.empty())
+		return;
+
+	for(const auto i : std::views::iota(0u, cm->numBrushes)){
 
 		auto materials = CM_GetBrushMaterials(&cm->brushes[i]);
 
 		bool yes = {};
 
-		for (auto& material : materials) {
-			if (CM_IsMatchingFilter({ filter }, material.c_str())) {
+		for (const auto& material : materials) {
+			if (CM_IsMatchingFilter(filters, material.c_str())) {
 				yes = true;
 				break;
 			}
@@ -39,7 +45,6 @@ void CM_LoadBrushWindingsToClipMap(const cbrush_t* brush)
 	if (!brush)
 		return;
 
-	std::unique_lock<std::mutex> lock(CClipMap::GetLock());
 
 	CClipMap::m_pWipGeometry = CM_GetBrushPoints(brush, { 0.f, 1.f, 0.f });
 	CClipMap::Insert(CClipMap::m_pWipGeometry);
@@ -193,7 +198,7 @@ void __cdecl adjacency_winding(adjacencyWinding_t* w, float* points, vec3_t norm
 	tri.material = CM_MaterialForNormal(brush->brush, normal);
 	brush->triangles.emplace_back(tri);
 
-	for (int winding = 0; winding < w->numsides; winding++) {
+	for(const auto winding : std::views::iota(0, w->numsides)){
 		winding_points.emplace_back(fvec3{ &points[winding * 3] });
 	}
 
@@ -308,72 +313,4 @@ bool CM_BrushInView(const cbrush_t* brush, struct cplane_s* frustumPlanes, int n
 	}
 
 	return 0;
-}
-
-/***********************************************************************
- > 
-***********************************************************************/
-void CM_DrawCollisionPoly(const std::vector<fvec3>& points, const float* colorFloat, bool depthtest)
-{
-	RB_DrawPolyInteriors(points, colorFloat, true, depthtest);
-}
-
-GfxPointVertex verts[2075];
-void CM_DrawCollisionEdges(const std::vector<fvec3>& points, const float* colorFloat, bool depthtest)
-{
-	const auto numPoints = points.size();
-	auto vert_count = 0;
-	auto vert_index_prev = numPoints - 1u;
-
-
-	for (auto i : std::views::iota(0u, numPoints)) {
-		vert_count = RB_AddDebugLine(verts, depthtest, points[i].As<vec_t*>(), points[vert_index_prev].As<vec_t*>(), colorFloat, vert_count);
-		vert_index_prev = i;
-	}
-
-	RB_DrawLines3D(vert_count / 2, 1, verts, depthtest);
-
-}
-void CM_ShowCollision([[maybe_unused]]GfxViewParms* viewParms)
-{
-	if (CClipMap::Size() == NULL)
-		return;
-
-	auto showCollision = NVar_FindMalleableVar<bool>("Show Collision");
-
-	if (!showCollision->Get())
-		return;
-
-
-	cplane_s frustum_planes[6];
-	CreateFrustumPlanes(frustum_planes);
-
-
-	auto brush = showCollision->GetChild("Brush Filter");
-
-
-	using FloatChild = ImNVar<float>;
-	using BoolChild = ImNVar<bool>;
-
-	cm_renderinfo render_info =
-	{
-		.frustum_planes = frustum_planes,
-		.num_planes = 5,
-		.draw_dist = showCollision->GetChildAs<FloatChild>("Draw Distance")->Get(),
-		.depth_test = showCollision->GetChildAs<BoolChild>("Depth Test")->Get(),
-		.as_polygons = showCollision->GetChildAs<BoolChild>("As Polygons")->Get(),
-		.only_colliding = showCollision->GetChildAs<BoolChild>("Ignore Noncolliding")->Get(),
-		.only_bounces = brush->GetChildAs<BoolChild>("Only Bounces")->Get(),
-		.only_elevators = brush->GetChildAs<BoolChild>("Only Elevators")->Get(),
-		.alpha = showCollision->GetChildAs<FloatChild>("Transparency")->Get()
-	};
-
-	std::unique_lock<std::mutex> lock(CClipMap::GetLock());
-
-	CClipMap::ForEach([&render_info](const GeometryPtr_t& geom) {
-		geom->render(render_info);
-	});
-
-
-
 }

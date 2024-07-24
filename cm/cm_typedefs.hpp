@@ -277,11 +277,13 @@ public:
 	static void ClearAllOfType(const cm_geomtype t);
 	static auto GetAllOfType(const cm_geomtype t);
 
+	static void ClearAllOfTypeThreadSafe(const cm_geomtype t){ std::unique_lock<std::mutex> lock(mtx); ClearAllOfType(t); }
 
 	static auto begin() { return m_pLevelGeometry.begin(); }
 	static auto end() { return m_pLevelGeometry.end(); }
 	static size_t Size() { return m_pLevelGeometry.size(); }
 	static void Clear() { m_pLevelGeometry.clear(); m_pWipGeometry.reset(); }
+	static void ClearThreadSafe() { std::unique_lock<std::mutex> lock(mtx); Clear(); }
 
 	inline static auto& GetLock() { return mtx; }
 
@@ -301,4 +303,4 @@ private:
 };
 
 void CM_LoadMap();
-
+std::unordered_set<std::string> CM_TokenizeFilters(const std::string& filters);
