@@ -12,7 +12,7 @@ void CM_AddModel(const GfxStaticModelDrawInst* model)
 	(
 		model->model->name,
 		model->placement.origin,
-		AxisToAngles((fvec3(*)[3])model->placement.axis),
+		AxisToAngles(model->placement.axis),
 		model->placement.scale
 	);
 

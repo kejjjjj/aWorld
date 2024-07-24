@@ -80,7 +80,7 @@ void CM_MapExport()
 	name = name.substr(0u, name.length() - sizeof(".d3dbsp") + 1u);
 	name = name.substr(sizeof("maps/mp"));
 
-	const std::string path = "map_source\\kej\\";
+	const std::string path = "Exports\\Map\\";
 	const std::string full_path = path + name + ".map";
 
 	const auto writer = AgentIOWriter(full_path, false);
