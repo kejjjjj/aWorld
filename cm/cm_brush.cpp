@@ -63,6 +63,7 @@ std::unique_ptr<cm_geometry> CM_GetBrushPoints(const cbrush_t* brush, const fvec
 	std::int32_t intersection = 0;
 	std::int32_t num_verts = 0;
 
+
 	CClipMap::m_pWipGeometry = std::make_unique<cm_brush>();
 	CClipMap::m_vecWipGeometryColor = poly_col;
 
@@ -269,22 +270,26 @@ char* CM_MaterialForNormal(const cbrush_t* target, const fvec3& normals)
 	if (mtl >= 0)
 		return cm->materials[mtl].material;
 
-	return nullptr;
+
+	return (char*)"caulk";
 
 }
 bool CM_BrushHasCollision(const cbrush_t* brush)
 {
 	return (brush->contents & MASK_PLAYERSOLID) != 0;
 }
+
+//mp_void_v2 made me have to make this so high
+float outPlanes[128][4]{};
+
 std::vector<std::string> CM_GetBrushMaterials(const cbrush_t* brush)
 {
 	std::vector<std::string> result;
 
-	float outPlanes[40][4]{};
 	const auto planeCount = BrushToPlanes(brush, outPlanes);
-	[[maybe_unused]] int intersections = GetPlaneIntersections((const float**)outPlanes, planeCount, pts);
+	[[maybe_unused]] const auto intersections = GetPlaneIntersections((const float**)outPlanes, planeCount, pts);
 
-	for (int i = 0; i < planeCount; i++)
+	for (const auto i : std::views::iota(0, planeCount))
 	{
 		const fvec3 plane = outPlanes[i];
 

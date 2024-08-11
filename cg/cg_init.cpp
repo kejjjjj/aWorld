@@ -2,6 +2,7 @@
 #include "cm/cm_terrain.hpp"
 #include "cm/cm_typedefs.hpp"
 #include "cm/cm_export.hpp"
+#include "cm/cm_entity.hpp"
 
 #include "cg/cg_local.hpp"
 #include "cg/cg_memory.hpp"
@@ -34,6 +35,9 @@ return 0;
 static void ClearTerrain() { CClipMap::ClearAllOfTypeThreadSafe(cm_geomtype::terrain); }
 static void ClearBrushes() { CClipMap::ClearAllOfTypeThreadSafe(cm_geomtype::brush); }
 
+static void ClearEntities() { CGentities::ClearThreadSafe(); }
+
+
 static void NVar_Setup([[maybe_unused]]NVarTable* table)
 {
     const auto showCollision = table->AddImNvar<bool, ImCheckbox>("Show Collision", false, NVar_ArithmeticToString<bool>);
@@ -46,7 +50,7 @@ static void NVar_Setup([[maybe_unused]]NVarTable* table)
 
         showCollision->AddImChild<bool, ImCheckbox>("Ignore Noncolliding", false, NVar_ArithmeticToString<bool>);
 
-        const auto brush = showCollision->AddImChild<std::string, ImInputText>("Brush Filter", "", NVar_String, 
+        const auto brush = showCollision->AddImChild<std::string, ImInputText>("Brush Filter", "", NVar_String, 128u, 
             ImGuiInputTextFlags_EnterReturnsTrue, CM_LoadAllBrushWindingsToClipMapWithFilter);
         
         brush->AddWidget<bool, ImButton>("Clear", same_line, ClearBrushes);
@@ -57,11 +61,16 @@ static void NVar_Setup([[maybe_unused]]NVarTable* table)
         }
 
 
-        const auto terrain = showCollision->AddImChild<std::string, ImInputText>("Terrain Filter", "", NVar_String,
+        const auto terrain = showCollision->AddImChild<std::string, ImInputText>("Terrain Filter", "", NVar_String, 128u,
             ImGuiInputTextFlags_EnterReturnsTrue, CM_LoadAllTerrainToClipMapWithFilter);
 
         terrain->AddWidget<bool, ImButton>("Clear", same_line, ClearTerrain);
 
+
+        const auto entity = showCollision->AddImChild<std::string, ImInputText>("Entity Filter", "", NVar_String, 128u,
+            ImGuiInputTextFlags_EnterReturnsTrue, CM_LoadAllEntitiesToClipMapWithFilter);
+
+        entity->AddWidget<bool, ImButton>("Clear", same_line, ClearEntities);
 
     }
 
@@ -136,6 +145,8 @@ void CG_Init()
 
     table->WriteNVarsToFile();
 
+    ImGui::SetCurrentContext(CMain::Shared::GetFunctionOrExit("GetContext")->As<ImGuiContext*>()->Call());
+
     CMain::Shared::GetFunctionOrExit("AddItem")->As<CGuiElement*, std::unique_ptr<CGuiElement>&&>()
         ->Call(std::make_unique<CWorldWindow>(NVAR_TABLE_NAME));
 
@@ -186,7 +197,6 @@ static PE_EXPORT deserialize_data(const std::string& data)
 }
 
 dll_export void L(void* data) {
-
     auto r = deserialize_data(reinterpret_cast<char*>(data));
 
     try {
@@ -196,9 +206,6 @@ dll_export void L(void* data) {
     catch ([[maybe_unused]] std::out_of_range& ex) {
         return FatalError(std::format("couldn't get a critical function"));
     }
-    using shared = CMain::Shared;
-
-    ImGui::SetCurrentContext(shared::GetFunctionOrExit("GetContext")->As<ImGuiContext*>()->Call());
 }
 
 #endif

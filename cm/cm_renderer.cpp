@@ -1,6 +1,9 @@
 #include "cg/cg_local.hpp"
-#include "cm/cm_typedefs.hpp"
+#include "cm_typedefs.hpp"
 #include "cm_brush.hpp"
+#include "cm_entity.hpp"
+#include "cg/cg_local.hpp"
+#include "cg/cg_offsets.hpp"
 #include "cm_renderer.hpp"
 #include "com/com_vector.hpp"
 #include "net/nvar_table.hpp"
@@ -23,6 +26,7 @@ void RB_DrawDebug([[maybe_unused]] GfxViewParms* viewParms)
 	hooktable::find<void, GfxViewParms*>(HOOK_PREFIX(__func__))->call(viewParms);
 #endif
 	
+
 	CM_ShowCollision(viewParms);
 
 }
@@ -54,7 +58,8 @@ void CM_DrawCollisionEdges(const std::vector<fvec3>& points, const float* colorF
 }
 void CM_ShowCollision([[maybe_unused]] GfxViewParms* viewParms)
 {
-	if (CClipMap::Size() == NULL)
+
+	if (CClipMap::Size() == NULL && CGentities::Size() == NULL)
 		return;
 
 	auto showCollision = NVar_FindMalleableVar<bool>("Show Collision");
@@ -86,13 +91,28 @@ void CM_ShowCollision([[maybe_unused]] GfxViewParms* viewParms)
 		.alpha = showCollision->GetChildAs<FloatChild>("Transparency")->Get()
 	};
 
-	std::unique_lock<std::mutex> lock(CClipMap::GetLock());
+	{
+		std::unique_lock<std::mutex> lock(CClipMap::GetLock());
 
-	CClipMap::ForEach([&render_info](const GeometryPtr_t& geom) {
-		geom->render(render_info);
-		});
+		CClipMap::ForEach([&render_info](const GeometryPtr_t& geom) {
 
+			//if (geom->type() == cm_geomtype::brush)
+			//	CM_DrawBrushBounds(dynamic_cast<cm_brush*>(geom.get())->brush, render_info.depth_test);
 
+			geom->render(render_info);
+			});
+	}
+
+	{
+		std::unique_lock<std::mutex> lock(CGentities::GetLock());
+
+		CGentities::ForEach([&render_info](const GentityPtr_t& gent) {
+			gent->RB_Render3D(render_info); });
+	}
 
 }
 
+void CM_DrawBrushBounds(const cbrush_t* brush, bool depthTest)
+{
+	RB_DrawBoxEdges(brush->mins, brush->maxs, depthTest, vec4_t{1,0,0,1});
+}

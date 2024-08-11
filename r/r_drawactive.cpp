@@ -8,8 +8,6 @@
 #include "utils/hook.hpp"
 #include "utils/typedefs.hpp"
 
-#include <format>
-
 void CG_DrawActive()
 {
 	if (R_NoRender())

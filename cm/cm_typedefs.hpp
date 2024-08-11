@@ -5,12 +5,16 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
-#include <utils/typedefs.hpp>
-#include "global_macros.hpp"
 #include <mutex>
+
+#include "global_macros.hpp"
+#include "utils/typedefs.hpp"
+
 
 struct CollisionAabbTree;
 struct adjacencyWinding_t;
+
+class CGameEntity;
 
 struct sc_winding_t
 {
@@ -167,7 +171,7 @@ class brushModelEntity;
 struct cm_geometry
 {
 	virtual ~cm_geometry() = default;
-	virtual void render(const cm_renderinfo& info) = 0;
+	virtual void render(const cm_renderinfo& info) const = 0;
 	virtual constexpr cm_geomtype type() const noexcept = 0;
 	virtual int map_export(std::stringstream& o, int index) = 0;
 	virtual void render2d() = 0;
@@ -181,16 +185,20 @@ struct cm_geometry
 
 struct cm_brush : public cm_geometry
 {
+	friend class CBrushModel;
+
 	~cm_brush() = default;
 
 	cm_geomtype type() const noexcept override { return cm_geomtype::brush; }
 
 	void create_corners();
-	void render(const cm_renderinfo& info) override;
+	void render(const cm_renderinfo& info) const override;
 	void render2d() override {}
 
 	friend void __cdecl adjacency_winding(adjacencyWinding_t* w, float* points, vec3_t normal, unsigned int i0, unsigned int i1, unsigned int i2);
 	friend std::unique_ptr<cm_geometry> CM_GetBrushPoints(const cbrush_t* brush, const fvec3& poly_col);
+
+	const cbrush_t* brush = {};
 
 protected:
 	int map_export(std::stringstream& o, int index) override;
@@ -204,18 +212,21 @@ private:
 		fvec3 maxs;
 	};
 
+	fvec3 mins;
+
 	std::vector<const cm_winding*> corners;
 
-	const cbrush_t* brush = {};
 };
 
 struct cm_terrain : public cm_geometry
 {
+	friend class CBrushModel;
+
 	~cm_terrain() = default;
 
 	constexpr cm_geomtype type() const noexcept override { return cm_geomtype::terrain; }
 
-	void render(const cm_renderinfo& info) override;
+	void render(const cm_renderinfo& info) const override;
 	void render2d() override;
 
 	bool CM_LeafToGeometry(const cLeaf_t* leaf, const std::unordered_set<std::string>& filters);
@@ -240,7 +251,7 @@ struct cm_model : public cm_geometry
 		name(_name), origin(_origin), angles(_angles), modelscale(_modelscale) {}
 	~cm_model() = default;
 
-	void render([[maybe_unused]] const cm_renderinfo& info) override {};
+	void render([[maybe_unused]] const cm_renderinfo& info) const override {};
 	void render2d() override {};
 
 	constexpr cm_geomtype type() const noexcept override { return cm_geomtype::model; }
@@ -262,6 +273,10 @@ bool CM_IsMatchingFilter(const std::unordered_set<std::string>& filters, const c
 using GeometryPtr_t = std::unique_ptr<cm_geometry>;
 using LevelGeometry_t = std::vector<GeometryPtr_t>;
 
+using GentityPtr_t = std::unique_ptr<CGameEntity>;
+using LevelGentities_t = std::vector<std::unique_ptr<CGameEntity>>;
+
+
 class CClipMap
 {
 	NONCOPYABLE(CClipMap);
@@ -272,8 +287,8 @@ public:
 	friend std::unique_ptr<cm_geometry> CM_GetBrushPoints(const cbrush_t* brush, const fvec3& poly_col);
 	friend void __cdecl adjacency_winding(adjacencyWinding_t* w, float* points, vec3_t normal, unsigned int i0, unsigned int i1, unsigned int i2);
 
-	static void Insert(std::unique_ptr<cm_geometry>& geom);
-	static void Insert(std::unique_ptr<cm_geometry>&& geom);
+	static void Insert(GeometryPtr_t& geom);
+	static void Insert(GeometryPtr_t&& geom);
 	static void ClearAllOfType(const cm_geomtype t);
 	static auto GetAllOfType(const cm_geomtype t);
 
@@ -299,7 +314,37 @@ private:
 	static std::unique_ptr<cm_geometry> m_pWipGeometry;
 	static fvec3 m_vecWipGeometryColor;
 	static LevelGeometry_t m_pLevelGeometry;
+
 	static std::mutex mtx;
+};
+
+class CGentities
+{
+public:
+
+	static void Insert(GentityPtr_t& geom);
+	static void Insert(GentityPtr_t&& geom);
+
+	static auto begin();
+	static auto end();
+	static size_t Size();
+	static void Clear();
+	static void ClearThreadSafe();
+
+	inline static auto& GetLock() { return mtx; }
+
+	template<typename Func>
+	static void ForEach(Func func) {
+
+		for (auto& geo : m_pLevelGentities)
+			func(geo);
+
+	}
+
+private:
+	static LevelGentities_t m_pLevelGentities;
+	static std::mutex mtx;
+
 };
 
 void CM_LoadMap();

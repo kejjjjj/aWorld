@@ -1,6 +1,7 @@
 #include "cg/cg_offsets.hpp"
 #include "cg/cg_local.hpp"
 #include "cm_brush.hpp"
+#include "cm_entity.hpp"
 #include "cm_model.hpp"
 #include "cm_renderer.hpp"
 #include "cm_terrain.hpp"
@@ -40,7 +41,7 @@ cm_winding::cm_winding(const std::vector<fvec3>& p, const fvec3& normal, [[maybe
 }
 
 
-void cm_brush::render([[maybe_unused]] const cm_renderinfo& info)
+void cm_brush::render([[maybe_unused]] const cm_renderinfo& info) const
 {
 	if (info.only_colliding && CM_BrushHasCollision(brush) == false)
 		return;
@@ -142,7 +143,7 @@ int cm_brush::map_export(std::stringstream& o, int index)
 	return ++index;
 }
 
-void cm_terrain::render(const cm_renderinfo& info)
+void cm_terrain::render(const cm_renderinfo& info) const
 {
 	if (info.only_elevators)
 		return;
@@ -350,6 +351,26 @@ auto CClipMap::GetAllOfType(const cm_geomtype t)
 }
 
 
+/***********************************************************************
+ > 
+***********************************************************************/
 
+LevelGentities_t CGentities::m_pLevelGentities;
+std::mutex CGentities::mtx;
+
+void CGentities::Insert(GentityPtr_t& geom)
+{
+	m_pLevelGentities.emplace_back(std::move(geom));
+}
+void CGentities::Insert(GentityPtr_t&& geom)
+{
+	m_pLevelGentities.emplace_back(std::forward<GentityPtr_t&&>(geom));
+}
+
+auto CGentities::begin() { return m_pLevelGentities.begin(); }
+auto CGentities::end() { return m_pLevelGentities.end(); }
+size_t CGentities::Size() { return m_pLevelGentities.size(); }
+void CGentities::Clear() { m_pLevelGentities.clear(); }
+void CGentities::ClearThreadSafe() { std::unique_lock<std::mutex> lock(mtx); Clear(); }
 
 
