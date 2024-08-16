@@ -24,7 +24,7 @@
 void CM_LoadAllEntitiesToClipMapWithFilter([[maybe_unused]]const std::string& filter)
 {
 	if (!Dvar_FindMalleableVar("sv_running")->current.enabled)
-		return Com_Printf("^1Unsupported when sv_running is set to 0");
+		return Com_Printf("^1Unsupported when sv_running is set to 0\n");
 
 	CGentities::ClearThreadSafe();
 	std::unique_lock<std::mutex> lock(CGentities::GetLock());
