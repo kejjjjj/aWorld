@@ -44,15 +44,27 @@ static void NVar_Setup([[maybe_unused]]NVarTable* table)
     {
         showCollision->AddImChild<float, ImDragFloat>("Draw Distance", 2500.f, NVar_ArithmeticToString<float>, 0.f, 10000.f, "%.1f");
 
-        showCollision->AddImChild<bool, ImCheckbox>("As Polygons", true, NVar_ArithmeticToString<bool>);
+        showCollision->AddImChild<bool, ImCheckbox>("As Polygons", true, NVar_ArithmeticToString<bool>)
+            ->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, "Render the planes instead of edges");
+
         showCollision->AddImChild<float, ImDragFloat>("Transparency", 0.7f, NVar_ArithmeticToString<float>, 0.f, 1.f, "%.2f");
-        showCollision->AddImChild<bool, ImCheckbox>("Depth Test", true, NVar_ArithmeticToString<bool>);
+        showCollision->AddImChild<bool, ImCheckbox>("Depth Test", true, NVar_ArithmeticToString<bool>)
+            ->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, "don't draw through walls");
 
-        showCollision->AddImChild<bool, ImCheckbox>("Ignore Noncolliding", false, NVar_ArithmeticToString<bool>);
 
-        const auto brush = showCollision->AddImChild<std::string, ImInputText>("Brush Filter", "", NVar_String, 128u, 
+        showCollision->AddImChild<bool, ImCheckbox>("Ignore Noncolliding", false, NVar_ArithmeticToString<bool>)
+            ->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, "don't include surfaces that you cannot collide with");
+
+        const auto brush = showCollision->AddImChild<std::string, ImInputText>("Brush Filter", "clip", NVar_String, 128u, 
             ImGuiInputTextFlags_EnterReturnsTrue, CM_LoadAllBrushWindingsToClipMapWithFilter);
         
+        brush->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, 
+            "name of the brush material you want to include (e.g. clip)\n"
+            "use the value \"all\" to render all surfaces\n"
+            "press ENTER to choose the filter"
+        );
+
+
         brush->AddWidget<bool, ImButton>("Clear", same_line, ClearBrushes);
 
         {
@@ -61,20 +73,34 @@ static void NVar_Setup([[maybe_unused]]NVarTable* table)
         }
 
 
-        const auto terrain = showCollision->AddImChild<std::string, ImInputText>("Terrain Filter", "", NVar_String, 128u,
+        const auto terrain = showCollision->AddImChild<std::string, ImInputText>("Terrain Filter", "clip", NVar_String, 128u,
             ImGuiInputTextFlags_EnterReturnsTrue, CM_LoadAllTerrainToClipMapWithFilter);
+
+        terrain->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags,
+            "name of the terrain material you want to include (e.g. clip)\n"
+            "use the value \"all\" to render all surfaces\n"
+            "press ENTER to choose the filter"
+        );
 
         terrain->AddWidget<bool, ImButton>("Clear", same_line, ClearTerrain);
 
 
-        const auto entity = showCollision->AddImChild<std::string, ImInputText>("Entity Filter", "", NVar_String, 128u,
+        const auto entity = showCollision->AddImChild<std::string, ImInputText>("Entity Filter", "trigger", NVar_String, 128u,
             ImGuiInputTextFlags_EnterReturnsTrue, CM_LoadAllEntitiesToClipMapWithFilter);
+
+        entity->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags,
+            "name of the entity you want to include (e.g. trigger)\n"
+            "use the value \"all\" to render all supported entities\n"
+            "press ENTER to choose the filter"
+        );
 
         entity->AddWidget<bool, ImButton>("Clear", same_line, ClearEntities);
 
     }
 
-    table->AddImNvar<bool, ImButton>("Map Export", false, NVar_ArithmeticToString<bool>, CM_MapExport);
+    table->AddImNvar<bool, ImButton>("Map Export", false, NVar_ArithmeticToString<bool>, CM_MapExport)
+        ->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, "export the level to a .map file under \\Agent\\Exports\\Map\\");
+
 
 
 }
