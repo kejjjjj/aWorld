@@ -1,9 +1,8 @@
 #include "main.hpp"
 #include "r_world.hpp"
 #include "net/nvar_table.hpp"
-#include <r/gui/r_main_gui.hpp>
-#include <shared/sv_shared.hpp>
-
+#include "r/gui/r_main_gui.hpp"
+#include "shared/sv_shared.hpp"
 
 CWorldWindow::CWorldWindow(const std::string& name)
 	: CGuiElement(name) {
@@ -24,20 +23,11 @@ void CWorldWindow::Render()
 
 #endif
 
-	const auto table = NVarTables::Get(NVAR_TABLE_NAME);
+	GUI_RenderNVars();
 
-	if (!table)
-		return;
+	ImGui::NewLine();
+	ImGui::Separator();
+	ImGui::Text("note: if you are rendering entity connections, disable \"As Polygons\"");
 
-	for (const auto& nvar : table->GetSorted()) {
-
-		if (nvar && nvar->IsImNVar()) {
-			std::string _v_ = nvar->GetName() + "_menu";
-			ImGui::BeginChild(_v_.c_str(), ImVec2(0, 0), ImGuiChildFlags_AutoResizeX | ImGuiChildFlags_AutoResizeY | ImGuiChildFlags_Border);
-			nvar->RenderImNVar();
-			ImGui::EndChild();
-		}
-
-	}
 }
 

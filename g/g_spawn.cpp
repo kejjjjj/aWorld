@@ -4,10 +4,15 @@
 #include "cg/cg_offsets.hpp"
 
 #include "dvar/dvar.hpp"
+#include "scr/scr_functions.hpp"
 
 #include "utils/engine.hpp"
 
+
+
 #include <string.h>
+#include <ranges>
+#include "com/com_channel.hpp"
 
 void G_InitGame()
 {
@@ -67,9 +72,87 @@ void G_SpawnEntitiesFromString()
 }
 void G_ResetEntityParsePoint()
 {
-
-
 	*g_entityBeginParsePoint = cm->mapEnts->entityString;
 	*g_entityEndParsePoint = *g_entityBeginParsePoint;
 }
 
+int G_ParseSpawnVars(SpawnVar* var)
+{
+	constexpr static auto vG_ParseSpawnVars = 0x4BD580;
+	__asm { 
+		mov eax, var; 
+		call vG_ParseSpawnVars; 
+	}
+}
+
+int G_GetItemForClassname(const char* classname)
+{
+	constexpr static auto f = 0x4DFE30;
+
+	__asm
+	{
+		mov esi, classname;
+		call f;
+	}
+
+}
+void(__cdecl* __cdecl G_FindSpawnFunc(const SpawnFuncEntry* spawnFuncArray, const char* classname, int spawnFuncCount))(gentity_s*)
+{
+	for (auto spawnFuncIter = 0; spawnFuncIter < spawnFuncCount; ++spawnFuncIter)
+	{
+		if (!strcmp(classname, spawnFuncArray[spawnFuncIter].classname))
+			return spawnFuncArray[spawnFuncIter].callback;
+	}
+	return 0;
+}
+
+bool G_GetSpawnItemIndex(const gentity_s* gent)
+{
+
+	const char* classname = 0;
+	const auto G_SpawnString = [&](const SpawnVar* spawnVar, const char* key, const char* defaultString, const char** out) {
+		return Engine::call<int>(0x4BD700, spawnVar, key, defaultString, out); };
+	
+	//
+	//SpawnFuncEntry* s_bspOrDynamicSpawns = reinterpret_cast<SpawnFuncEntry*>(0x6BC1D8);
+	//SpawnFuncEntry* s_bspOnlySpawns = reinterpret_cast<SpawnFuncEntry*>(0x6BC168);
+
+
+	G_SpawnString(&level->spawnVar, "classname", "", &classname);
+
+	return classname && !strcmp(classname, Scr_GetString(gent->classname));
+
+	//if (!classname || strncmp(classname, "dyn_", 4)) {
+	//	continue;
+	//}
+
+	//if (G_GetItemForClassname(classname)) {
+	//	continue;
+	//}
+
+	//auto spawnFunc = G_FindSpawnFunc(s_bspOrDynamicSpawns, classname, 6);
+	//if (!spawnFunc)
+	//	spawnFunc = G_FindSpawnFunc(s_bspOnlySpawns, classname, 14);
+	//	
+	//if (spawnFunc != decltype(spawnFunc)(0x4E3A50)) {
+	//	currentNumber++;
+	//}
+
+
+
+	//return currentNumber;
+
+}
+
+SpawnVar* G_GetGentitySpawnVars(const gentity_s* gent)
+{
+	SpawnVar* var = &level->spawnVar;
+	auto parsed = false;
+
+	while (parsed = G_ParseSpawnVars(var), parsed){
+		if (G_GetSpawnItemIndex(gent))
+			break;
+	};
+
+	return !parsed ? nullptr : var;
+}

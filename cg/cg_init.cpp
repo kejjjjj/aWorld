@@ -40,22 +40,26 @@ static void ClearEntities() { CGentities::ClearThreadSafe(); }
 
 static void NVar_Setup([[maybe_unused]]NVarTable* table)
 {
+    table->AddImNvar<bool, ImButton>("Map Export", false, NVar_ArithmeticToString<bool>, nvar_saved, CM_MapExport)
+        ->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, "export the level to a .map file under \\Agent\\Exports\\Map\\");
+
+
     const auto showCollision = table->AddImNvar<bool, ImCheckbox>("Show Collision", false, NVar_ArithmeticToString<bool>);
     {
-        showCollision->AddImChild<float, ImDragFloat>("Draw Distance", 2500.f, NVar_ArithmeticToString<float>, 0.f, 10000.f, "%.1f");
+        showCollision->AddImChild<float, ImDragFloat>("Draw Distance", 2500.f, NVar_ArithmeticToString<float>, nvar_saved, 0.f, 10000.f, "%.1f");
 
-        showCollision->AddImChild<bool, ImCheckbox>("As Polygons", true, NVar_ArithmeticToString<bool>)
+        showCollision->AddImChild<bool, ImCheckbox>("As Polygons", true, NVar_ArithmeticToString<bool>, nvar_saved)
             ->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, "Render the planes instead of edges");
 
-        showCollision->AddImChild<float, ImDragFloat>("Transparency", 0.7f, NVar_ArithmeticToString<float>, 0.f, 1.f, "%.2f");
-        showCollision->AddImChild<bool, ImCheckbox>("Depth Test", true, NVar_ArithmeticToString<bool>)
+        showCollision->AddImChild<float, ImDragFloat>("Transparency", 0.7f, NVar_ArithmeticToString<float>, nvar_saved, 0.f, 1.f, "%.2f");
+        showCollision->AddImChild<bool, ImCheckbox>("Depth Test", true, NVar_ArithmeticToString<bool>, nvar_saved)
             ->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, "don't draw through walls");
 
 
-        showCollision->AddImChild<bool, ImCheckbox>("Ignore Noncolliding", false, NVar_ArithmeticToString<bool>)
+        showCollision->AddImChild<bool, ImCheckbox>("Ignore Noncolliding", false, NVar_ArithmeticToString<bool>, nvar_saved)
             ->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, "don't include surfaces that you cannot collide with");
 
-        const auto brush = showCollision->AddImChild<std::string, ImInputText>("Brush Filter", "clip", NVar_String, 128u, 
+        const auto brush = showCollision->AddImChild<std::string, ImInputText>("Brush Filter", "clip", NVar_String, nvar_saved, 128u,
             ImGuiInputTextFlags_EnterReturnsTrue, CM_LoadAllBrushWindingsToClipMapWithFilter);
         
         brush->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, 
@@ -68,12 +72,12 @@ static void NVar_Setup([[maybe_unused]]NVarTable* table)
         brush->AddWidget<bool, ImButton>("Clear", same_line, ClearBrushes);
 
         {
-            brush->AddImChild<bool, ImCheckbox>("Only Elevators", false, NVar_ArithmeticToString<bool>);
-            brush->AddImChild<bool, ImCheckbox>("Only Bounces", false, NVar_ArithmeticToString<bool>);
+            brush->AddImChild<bool, ImCheckbox>("Only Elevators", false, NVar_ArithmeticToString<bool>, nvar_saved);
+            brush->AddImChild<bool, ImCheckbox>("Only Bounces", false, NVar_ArithmeticToString<bool>, nvar_saved);
         }
 
 
-        const auto terrain = showCollision->AddImChild<std::string, ImInputText>("Terrain Filter", "clip", NVar_String, 128u,
+        const auto terrain = showCollision->AddImChild<std::string, ImInputText>("Terrain Filter", "clip", NVar_String, nvar_saved, 128u,
             ImGuiInputTextFlags_EnterReturnsTrue, CM_LoadAllTerrainToClipMapWithFilter);
 
         terrain->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags,
@@ -85,8 +89,8 @@ static void NVar_Setup([[maybe_unused]]NVarTable* table)
         terrain->AddWidget<bool, ImButton>("Clear", same_line, ClearTerrain);
 
 
-        const auto entity = showCollision->AddImChild<std::string, ImInputText>("Entity Filter", "trigger", NVar_String, 128u,
-            ImGuiInputTextFlags_EnterReturnsTrue, CM_LoadAllEntitiesToClipMapWithFilter);
+        const auto entity = showCollision->AddImChild<std::string, ImInputText>("Entity Filter", "trigger", NVar_String, nvar_saved, 128u,
+            ImGuiInputTextFlags_EnterReturnsTrue, CGentities::CM_LoadAllEntitiesToClipMapWithFilter);
 
         entity->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags,
             "name of the entity you want to include (e.g. trigger)\n"
@@ -95,11 +99,17 @@ static void NVar_Setup([[maybe_unused]]NVarTable* table)
         );
 
         entity->AddWidget<bool, ImButton>("Clear", same_line, ClearEntities);
+        {
+            entity->AddImChild<bool, ImCheckbox>("Spawnstrings", true, NVar_ArithmeticToString<bool>, nvar_saved)
+                ->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, "render the entity's key/value pairs");
+
+            entity->AddImChild<bool, ImCheckbox>("Draw Connections", true, NVar_ArithmeticToString<bool>, nvar_saved)
+                ->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, "render connections between entities");
+
+
+        }
 
     }
-
-    table->AddImNvar<bool, ImButton>("Map Export", false, NVar_ArithmeticToString<bool>, CM_MapExport)
-        ->AddWidget<std::string, ImHintString>("hintstring", eWidgetFlags::no_flags, "export the level to a .map file under \\Agent\\Exports\\Map\\");
 
 
 

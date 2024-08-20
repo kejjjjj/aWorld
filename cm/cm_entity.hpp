@@ -7,8 +7,13 @@
 #include <memory>
 
 struct gentity_s;
+struct GfxPointVertex;
 
-void CM_LoadAllEntitiesToClipMapWithFilter(const std::string& filter);
+struct CGentityConnection
+{
+	gentity_s* const m_pConnection{};
+	fvec3 start, end;
+};
 
 class CGameEntity
 {
@@ -21,19 +26,30 @@ public:
 	[[nodiscard]] static std::unique_ptr<CGameEntity> CreateEntity(gentity_s* const g);
 
 	virtual void RB_Render3D(const cm_renderinfo& info) const;
+	virtual void CG_Render2D(float drawDist) const;
+
+	void GenerateConnections(const LevelGentities_t& gentities);
 
 protected:
 
-	[[nodiscard]] bool IsBrushModel() const noexcept;
+	void RB_RenderConnections(const cm_renderinfo& info) const;
 
-private:
-	gentity_s* const m_pOwner{};
+	[[nodiscard]] bool IsBrushModel() const noexcept;
 
 	fvec3& m_vecOrigin;
 	fvec3& m_vecAngles;
-	
-	fvec3 m_vecOldOrigin;
-	fvec3 m_vecOldAngles;
+
+	mutable fvec3 m_vecOldOrigin;
+	mutable fvec3 m_vecOldAngles;
+
+private:
+	void ParseEntityFields();
+
+	gentity_s* const m_pOwner{};
+
+	std::unordered_map<std::string, std::string> m_oEntityFields;
+	std::vector<CGentityConnection> m_oGentityConnections;
+	mutable std::vector<GfxPointVertex> m_oGentityConnectionVertices;
 };
 
 class CBrushModel : public CGameEntity
@@ -53,12 +69,12 @@ public:
 		virtual void RB_Render3D(const cm_renderinfo& info) const;
 
 		[[nodiscard]] virtual const cm_geometry& GetSource() const noexcept = 0;
+		virtual void OnPositionChanged(const fvec3& newOrigin, const fvec3& newAngles) = 0;
 
 	protected:
-		virtual void OnPositionChanged(const fvec3& newOrigin, const fvec3& newAngles) = 0;
 		[[nodiscard]] virtual fvec3 GetCenter() const noexcept;
 
-	private:
+	//private:
 		gentity_s* const m_pOwner{};
 	};
 
