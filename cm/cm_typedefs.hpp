@@ -322,6 +322,8 @@ class CGentities
 {
 public:
 
+	static void CM_LoadAllEntitiesToClipMapWithFilter(const std::string& filter);
+
 	static void Insert(GentityPtr_t& geom);
 	static void Insert(GentityPtr_t&& geom);
 
