@@ -1,4 +1,4 @@
-#include "main.hpp"
+#include "cm/cm_typedefs.hpp"
 #include "r_world.hpp"
 #include "net/nvar_table.hpp"
 #include "r/gui/r_main_gui.hpp"
@@ -8,6 +8,7 @@ CWorldWindow::CWorldWindow(const std::string& name)
 	: CGuiElement(name) {
 
 }
+
 
 void CWorldWindow::Render()
 {
@@ -24,6 +25,25 @@ void CWorldWindow::Render()
 #endif
 
 	GUI_RenderNVars();
+
+	ImGui::NewLine();
+
+	ImGui::Text("remove collision from selected brushes when the volume is greater than");
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(50.f);
+	ImGui::DragFloat("##volume", &m_fBrushVolume, 10.f, 0.f, 0.f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+	ImGui::SameLine();
+	ImGui::Text("units");
+
+	if (ImGui::ButtonCentered("Apply")) {
+		std::unique_lock lock(CClipMap::GetLock());
+		CClipMap::RemoveBrushCollisionsBasedOnVolume(m_fBrushVolume);
+	}
+	if (ImGui::ButtonCentered("Restore Changes")) {
+		std::unique_lock lock(CClipMap::GetLock());
+		CClipMap::RestoreBrushCollisions();
+	}
+
 
 	ImGui::NewLine();
 	ImGui::Separator();

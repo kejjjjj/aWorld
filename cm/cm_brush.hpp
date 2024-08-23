@@ -25,6 +25,7 @@ std::vector<std::string> CM_GetBrushMaterials(const cbrush_t* brush);
 bool CM_BrushInView(const cbrush_t* brush, struct cplane_s* frustumPlanes, int numPlanes=5);
 
 
+
 namespace __brush
 {
 	void __asm_adjacency_winding();

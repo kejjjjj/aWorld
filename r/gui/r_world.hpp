@@ -23,4 +23,5 @@ private:
 
 
 	size_t m_uSelectedPlayback = {};
+	float m_fBrushVolume = 500.f;
 };

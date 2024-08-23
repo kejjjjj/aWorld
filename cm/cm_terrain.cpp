@@ -66,7 +66,7 @@ void cm_terrain::CM_AdvanceAabbTree(const CollisionAabbTree* aabbTree, const std
 	}
 
 	material = mat;
-
+	originalContents = leaf->terrainContents;
 
 	CollisionAabbTreeIndex fChild = aabbTree->u;
 	CollisionPartition* partition = &cm->partitions[fChild.partitionIndex];

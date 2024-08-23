@@ -69,8 +69,9 @@ std::unique_ptr<cm_geometry> CM_GetBrushPoints(const cbrush_t* brush, const fvec
 
 	auto c_brush = dynamic_cast<cm_brush*>(CClipMap::m_pWipGeometry.get());
 
-	c_brush->brush = brush;
+	c_brush->brush = const_cast<cbrush_t*>(brush);
 	c_brush->origin = fvec3(brush->mins) + ((fvec3(brush->maxs) - fvec3(brush->mins)) / 2);
+	c_brush->originalContents = brush->contents;
 
 	do {
 		if (const auto w = BuildBrushdAdjacencyWindingForSide(intersections, pts, outPlanes[intersection], intersection, &windings[intersection])) {
@@ -192,7 +193,7 @@ void __cdecl adjacency_winding(adjacencyWinding_t* w, float* points, vec3_t norm
 
 	PlaneFromPointsASM(tri.plane, tri.a, tri.b, tri.c);
 
-	if (DotProduct(tri.plane, normal) < 0.f) {
+	if (DotProduct(tri.plane, normal) <= 0.f) {
 		std::swap(tri.a, tri.c);
 	}
 
@@ -293,8 +294,9 @@ std::vector<std::string> CM_GetBrushMaterials(const cbrush_t* brush)
 	{
 		const fvec3 plane = outPlanes[i];
 
-		if (const auto mtl = CM_MaterialForNormal(brush, plane))
+		if (const auto mtl = CM_MaterialForNormal(brush, plane)) {
 			result.emplace_back(mtl);
+		}
 		
 
 	}

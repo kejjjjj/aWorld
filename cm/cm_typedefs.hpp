@@ -177,6 +177,7 @@ struct cm_geometry
 	virtual void render2d() = 0;
 	fvec3 origin;
 	bool has_collisions = {};
+	int originalContents = {};
 	int num_verts = {};
 	brushModelEntity* brushmodel = 0;
 
@@ -198,7 +199,7 @@ struct cm_brush : public cm_geometry
 	friend void __cdecl adjacency_winding(adjacencyWinding_t* w, float* points, vec3_t normal, unsigned int i0, unsigned int i1, unsigned int i2);
 	friend std::unique_ptr<cm_geometry> CM_GetBrushPoints(const cbrush_t* brush, const fvec3& poly_col);
 
-	const cbrush_t* brush = {};
+	cbrush_t* brush = {};
 
 protected:
 	int map_export(std::stringstream& o, int index) override;
@@ -294,10 +295,16 @@ public:
 
 	static void ClearAllOfTypeThreadSafe(const cm_geomtype t){ std::unique_lock<std::mutex> lock(mtx); ClearAllOfType(t); }
 
+	//NOT thread safe
+	static void RemoveBrushCollisionsBasedOnVolume(const float volume);
+
+	//NOT thread safe
+	static void RestoreBrushCollisions();
+
 	static auto begin() { return m_pLevelGeometry.begin(); }
 	static auto end() { return m_pLevelGeometry.end(); }
 	static size_t Size() { return m_pLevelGeometry.size(); }
-	static void Clear() { m_pLevelGeometry.clear(); m_pWipGeometry.reset(); }
+	static void Clear() { CClipMap::RestoreBrushCollisions(); m_pLevelGeometry.clear(); m_pWipGeometry.reset(); }
 	static void ClearThreadSafe() { std::unique_lock<std::mutex> lock(mtx); Clear(); }
 
 	inline static auto& GetLock() { return mtx; }
