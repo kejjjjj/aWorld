@@ -329,6 +329,9 @@ void CClipMap::Insert(std::unique_ptr<cm_geometry>&& geom) {
 }
 void CClipMap::ClearAllOfType(const cm_geomtype t)
 {
+	if (t == cm_geomtype::brush)
+		CClipMap::RestoreBrushCollisions();
+
 	auto itr = std::remove_if(m_pLevelGeometry.begin(), m_pLevelGeometry.end(), [&t](std::unique_ptr<cm_geometry>& g)
 		{
 			return g->type() == t;
@@ -350,8 +353,34 @@ auto CClipMap::GetAllOfType(const cm_geomtype t)
 	return r;
 }
 
+void CClipMap::RemoveBrushCollisionsBasedOnVolume(const float volume)
+{
+	for (const auto& geom : m_pLevelGeometry) {
 
-/***********************************************************************
+		if (geom->type() != cm_geomtype::brush)
+			continue;
+
+		const auto pbrush = dynamic_cast<cm_brush*>(&*geom);
+		const float geomVolume = ((fvec3&)pbrush->brush->maxs - (fvec3&)pbrush->brush->mins).mag();
+
+		if (geomVolume >= volume)
+			pbrush->brush->contents &= ~0x10000;
+	}
+}
+
+void CClipMap::RestoreBrushCollisions()
+{
+	for (const auto& geom : m_pLevelGeometry) {
+
+		if (geom->type() != cm_geomtype::brush)
+			continue;
+
+		const auto pbrush = dynamic_cast<cm_brush*>(&*geom);
+		pbrush->brush->contents = pbrush->originalContents;
+	}
+}
+
+/***********************************************************************Z
  > 
 ***********************************************************************/
 
