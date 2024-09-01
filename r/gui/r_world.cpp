@@ -28,7 +28,7 @@ void CWorldWindow::Render()
 
 	ImGui::NewLine();
 
-	ImGui::Text("remove collision from selected brushes when the volume is greater than");
+	ImGui::Text("remove collision from selected brushes when the diameter is greater than");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(50.f);
 	ImGui::DragFloat("##volume", &m_fBrushVolume, 10.f, 0.f, 0.f, "%.1f", ImGuiSliderFlags_AlwaysClamp);

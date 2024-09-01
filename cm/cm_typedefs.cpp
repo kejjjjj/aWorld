@@ -286,6 +286,8 @@ void CM_LoadMap()
 
 	CClipMap::ClearThreadSafe();
 
+	std::unique_lock<std::mutex> lock(CClipMap::GetLock());
+
 	for(const auto i : std::views::iota(0u, cm->numBrushes))
 		CM_LoadBrushWindingsToClipMap(&cm->brushes[i]);
 

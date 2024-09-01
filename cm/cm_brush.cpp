@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <ranges>
+#include <iostream>
 
 void CM_LoadAllBrushWindingsToClipMapWithFilter(const std::string& filter)
 {
@@ -45,20 +46,22 @@ void CM_LoadBrushWindingsToClipMap(const cbrush_t* brush)
 	if (!brush)
 		return;
 
-
 	CClipMap::m_pWipGeometry = CM_GetBrushPoints(brush, { 0.f, 1.f, 0.f });
 	CClipMap::Insert(CClipMap::m_pWipGeometry);
 
 }
+//mp_void_v2 made me have to make this so high
+float outPlanes[128][4]{};
+adjacencyWinding_t windings[128]{};
+
 std::unique_ptr<cm_geometry> CM_GetBrushPoints(const cbrush_t* brush, const fvec3& poly_col)
 {
 	if (!brush)
 		return nullptr;
 
-	float outPlanes[40][4]{};
+
 	const auto planeCount = BrushToPlanes(brush, outPlanes);
 	const auto intersections = GetPlaneIntersections((const float**)outPlanes, planeCount, pts);
-	adjacencyWinding_t windings[40]{};
 
 	std::int32_t intersection = 0;
 	std::int32_t num_verts = 0;
@@ -150,13 +153,13 @@ int GetPlaneIntersections(const float** planes, int planeCount, SimplePlaneInter
 
 	return r;
 }
-int BrushToPlanes(const cbrush_t* brush, float(*outPlanes)[4])
+int BrushToPlanes(const cbrush_t* brush, float(*_outPlanes)[4])
 {
 	float planes[6][4]{};
 	CM_BuildAxialPlanes((float(*)[6][4])planes, brush);
 	auto i = 0u;
 	do {
-		CM_GetPlaneVec4Form(brush->sides, planes, i, outPlanes[i]);
+		CM_GetPlaneVec4Form(brush->sides, planes, i, _outPlanes[i]);
 
 	} while (++i < brush->numsides + 6);
 
@@ -280,19 +283,19 @@ bool CM_BrushHasCollision(const cbrush_t* brush)
 	return (brush->contents & MASK_PLAYERSOLID) != 0;
 }
 
-//mp_void_v2 made me have to make this so high
-float outPlanes[128][4]{};
+
+float outPlanes2[128][4]{};
 
 std::vector<std::string> CM_GetBrushMaterials(const cbrush_t* brush)
 {
 	std::vector<std::string> result;
 
-	const auto planeCount = BrushToPlanes(brush, outPlanes);
-	[[maybe_unused]] const auto intersections = GetPlaneIntersections((const float**)outPlanes, planeCount, pts);
+	const auto planeCount = BrushToPlanes(brush, outPlanes2);
+	[[maybe_unused]] const auto intersections = GetPlaneIntersections((const float**)outPlanes2, planeCount, pts);
 
 	for (const auto i : std::views::iota(0, planeCount))
 	{
-		const fvec3 plane = outPlanes[i];
+		const fvec3 plane = outPlanes2[i];
 
 		if (const auto mtl = CM_MaterialForNormal(brush, plane)) {
 			result.emplace_back(mtl);
