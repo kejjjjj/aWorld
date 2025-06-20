@@ -22,6 +22,7 @@
 #include "shared/sv_shared.hpp"
 #include "sys/sys_thread.hpp"
 #include "utils/engine.hpp"
+#include "scripting/sc_main.hpp"
 
 #include <thread>
 
@@ -194,6 +195,7 @@ void CG_Init()
     //CMain::Shared::GetFunctionOrExit("Queue_CL_CreateNewCommands")->As<void, createnewcommands_t>()->Call(CL_FinishMove);
     CMain::Shared::GetFunctionOrExit("Queue_RB_EndScene")->As<void, rb_endscene_t>()->Call(RB_DrawDebug);
     CMain::Shared::GetFunctionOrExit("Queue_CG_Cleanup")->As<void, cg_cleanup_t>()->Call(CG_Cleanup);
+    CMain::Shared::GetFunctionOrExit("Queue_SC_InitObjects")->As<void, sc_init_objects_t>()->Call(SC_AddWorldObjects);
 
     //so that all modules know what render method is currently available
 #pragma warning(suppress : 6011) //shut up false positive

@@ -114,8 +114,6 @@ struct cm_winding
 	bool is_bounce = {};
 	bool is_elevator = {};
 
-private:
-
 	inline fvec3 get_mins() const noexcept
 	{
 		std::vector<float> x, y, z;
@@ -150,6 +148,18 @@ private:
 
 		return { _x, _y, _z };
 	}
+	inline fvec3 get_center() const noexcept {
+
+		float xSum{}, ySum{}, zSum{};
+
+		for (auto& p : points) {
+			xSum += p.x;
+			ySum += p.y;
+			zSum += p.z;
+		}
+		const auto numPoints = points.size();
+		return { xSum / numPoints, ySum / numPoints, zSum / numPoints };
+	}
 };
 
 
@@ -168,12 +178,17 @@ struct cm_renderinfo
 
 class brushModelEntity;
 
+struct cm_brush;
+struct cm_terrain;
+
 struct cm_geometry
 {
 	virtual ~cm_geometry() = default;
 	virtual constexpr cm_geomtype type() const noexcept = 0;
 	virtual int map_export(std::stringstream& o, int index) = 0;
 	virtual void render2d() { return; }
+	[[nodiscard]] virtual const cm_brush* AsBrush() const noexcept { return nullptr; }
+	[[nodiscard]] virtual const cm_terrain* AsTerrain() const noexcept { return nullptr; }
 
 	[[nodiscard]] virtual bool RB_MakeInteriorsRenderable([[maybe_unused]] const cm_renderinfo& info) const { return false; }
 	[[nodiscard]] virtual bool RB_MakeOutlinesRenderable([[maybe_unused]] const cm_renderinfo& info, [[maybe_unused]] int& nverts) const {
@@ -197,6 +212,7 @@ struct cm_brush : public cm_geometry
 	~cm_brush() = default;
 
 	cm_geomtype type() const noexcept override { return cm_geomtype::brush; }
+	[[nodiscard]] const cm_brush* AsBrush() const noexcept override { return this; }
 
 	void create_corners();
 
@@ -205,7 +221,7 @@ struct cm_brush : public cm_geometry
 
 	friend void __cdecl adjacency_winding(adjacencyWinding_t* w, float* points, vec3_t normal, unsigned int i0, unsigned int i1, unsigned int i2);
 	friend std::unique_ptr<cm_geometry> CM_GetBrushPoints(const cbrush_t* brush, const fvec3& poly_col);
-
+	friend class IValue* WorldBrushes(struct CRuntimeContext* const ctx, [[maybe_unused]] IValue* _this);
 	cbrush_t* brush = {};
 
 protected:
@@ -231,6 +247,7 @@ struct cm_terrain : public cm_geometry
 	~cm_terrain() = default;
 
 	constexpr cm_geomtype type() const noexcept override { return cm_geomtype::terrain; }
+	[[nodiscard]] const cm_terrain* AsTerrain() const noexcept override { return this; }
 
 	void render2d() override;
 
