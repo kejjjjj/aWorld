@@ -163,13 +163,10 @@ void cm_brush::create_corners()
 int cm_brush::map_export(std::stringstream& o, int index)
 {
 
-	std::vector<cm_triangle> new_points = triangles;
-
-
 	o << "// brush " << index << '\n';
 	o << "{\n";
 
-	for (const auto& tri : new_points)
+	for (const auto& tri : triangles)
 	{
 
 		o << std::format(" ( {} {} {} )", tri.a.x, tri.a.y, tri.a.z);

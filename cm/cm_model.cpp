@@ -5,21 +5,20 @@
 #include <com/com_vector.hpp>
 #include <iomanip>
 
-void CM_AddModel(const GfxStaticModelDrawInst* model)
+cm_model CM_MakeModel(const GfxStaticModelDrawInst* model)
 {
-
-	cm_model xmodel
+	return cm_model
 	(
 		model->model->name,
 		model->placement.origin,
 		AxisToAngles(model->placement.axis),
 		model->placement.scale
 	);
-
-	CClipMap::Insert(std::make_unique<cm_model>(xmodel));
 }
 
-
+void CM_AddModel(const GfxStaticModelDrawInst* model) {
+	CClipMap::Insert(std::make_unique<cm_model>(CM_MakeModel(model)));
+}
 int cm_model::map_export(std::stringstream& o, int index)
 {
 

@@ -64,7 +64,7 @@ struct cm_triangle
 	bool has_collision = false;
 	//bool edge_walkable = true;
 
-	fvec3 get_mins() const noexcept {
+	inline fvec3 get_mins() const noexcept {
 		fvec3 lowest = FLT_MAX;
 
 		lowest.x = a.x;
@@ -82,7 +82,7 @@ struct cm_triangle
 		return lowest;
 
 	}
-	fvec3 get_maxs() const noexcept {
+	inline fvec3 get_maxs() const noexcept {
 		fvec3 highest = -FLT_MAX;
 
 		highest.x = a.x;
@@ -99,6 +99,9 @@ struct cm_triangle
 
 		return highest;
 
+	}
+	inline fvec3 get_center() const noexcept {
+		return (a + b + c) / 3;
 	}
 };
 struct cm_winding
@@ -243,6 +246,7 @@ private:
 struct cm_terrain : public cm_geometry
 {
 	friend class CBrushModel;
+	friend class IValue* WorldTerrain(struct CRuntimeContext* const ctx, [[maybe_unused]] IValue* _this);
 
 	~cm_terrain() = default;
 
@@ -271,6 +275,8 @@ private:
 
 struct cm_model : public cm_geometry
 {
+	friend class IValue* WorldModels(struct CRuntimeContext* const ctx, [[maybe_unused]] IValue* _this);
+
 	cm_model(const char* _name, const fvec3& _origin, const fvec3& _angles, float _modelscale) : 
 		name(_name), origin(_origin), angles(_angles), modelscale(_modelscale) {}
 	~cm_model() = default;
