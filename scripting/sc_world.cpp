@@ -145,6 +145,7 @@ VARJUS_DEFINE_STATIC_OBJECT(WorldObject, receiver) {
 	receiver.AddProperty("name", WorldMapName);
 
 	receiver.AddMethod("trace", WorldTrace, 5);
+	receiver.AddMethod("player_trace", WorldPlayerTrace, 4);
 	receiver.AddMethod("debug_string", WorldDebugString, 5);
 	receiver.AddMethod("debug_line", WorldDebugLine, 5);
 }
