@@ -12,13 +12,16 @@ inline CObjectValue* ToKVObject(CProgramRuntime* const rt, Args&&... args) {
 	return CObjectValue::Construct(rt, { { CStringValue::Construct(rt, std::get<0>(args)), std::get<1>(args) }... });
 }
 
-inline CObjectValue* ToVec3FromObject(CProgramRuntime* const rt, const fvec3& vec)
+inline auto ToVec3FromObject(CProgramRuntime* const rt, const fvec3& vec)
 {
-	return ToKVObject(rt,
-		std::make_pair(VSL("x"), CDoubleValue::Construct(rt, vec.x)),
-		std::make_pair(VSL("y"), CDoubleValue::Construct(rt, vec.y)),
-		std::make_pair(VSL("z"), CDoubleValue::Construct(rt, vec.z))
-	);
+	IValues values = { CDoubleValue::Construct(rt, vec.x), CDoubleValue::Construct(rt, vec.y), CDoubleValue::Construct(rt, vec.z) };
+
+	return CArrayValue::Construct(rt, std::move(values));
+	//return ToKVObject(rt,
+	//	std::make_pair(VSL("x"), CDoubleValue::Construct(rt, vec.x)),
+	//	std::make_pair(VSL("y"), CDoubleValue::Construct(rt, vec.y)),
+	//	std::make_pair(VSL("z"), CDoubleValue::Construct(rt, vec.z))
+	//);
 }
 
 template<std::size_t count = 3>
