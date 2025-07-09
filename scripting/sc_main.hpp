@@ -8,11 +8,11 @@
 #include <ranges>
 
 template<typename ... Args>
-inline CObjectValue* ToKVObject(CProgramRuntime* const rt, Args&&... args) {
+inline CObjectValue* ToKVObject(Varjus::CProgramRuntime* const rt, Args&&... args) {
 	return CObjectValue::Construct(rt, { { CStringValue::Construct(rt, std::get<0>(args)), std::get<1>(args) }... });
 }
 
-inline auto ToVec3FromObject(CProgramRuntime* const rt, const fvec3& vec)
+inline auto ToVec3FromObject(Varjus::CProgramRuntime* const rt, const fvec3& vec)
 {
 	IValues values = { CDoubleValue::Construct(rt, vec.x), CDoubleValue::Construct(rt, vec.y), CDoubleValue::Construct(rt, vec.z) };
 
@@ -25,17 +25,17 @@ inline auto ToVec3FromObject(CProgramRuntime* const rt, const fvec3& vec)
 }
 
 template<std::size_t count = 3>
-inline fvec3 IsVecArray(CProgramRuntime* const rt, const IValue* v) {
+inline fvec3 IsVecArray(Varjus::CProgramRuntime* const rt, const IValue* v) {
 	auto asArray = v->ToArray();
 
 	auto& vars = asArray->Internal()->GetContent().GetVariables();
 	if (vars.size() != count)
-		throw CRuntimeError(rt, VSL("expected 3 elements for the array"));
+		throw Varjus::CRuntimeError(rt, VSL("expected 3 elements for the array"));
 
 	fvec3 vec3;
 	for (std::size_t i{}; auto & var : vars | std::views::take(count)) {
 		if (!var->GetValue()->IsArithmetic())
-			throw CRuntimeError(rt, VSL("expected an arithmetic type"));
+			throw Varjus::CRuntimeError(rt, VSL("expected an arithmetic type"));
 
 		vec3[i++] = static_cast<float>(var->GetValue()->ToDouble());
 	}
@@ -43,4 +43,4 @@ inline fvec3 IsVecArray(CProgramRuntime* const rt, const IValue* v) {
 	return vec3;
 };
 
-[[nodiscard]] Success SC_AddWorldObjects(Varjus::State& state);
+[[nodiscard]] Varjus::Success SC_AddWorldObjects(Varjus::State& state);
