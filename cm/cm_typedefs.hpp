@@ -207,7 +207,10 @@ struct cm_geometry
 
 };
 
-
+namespace Varjus
+{
+	struct CRuntimeContext;
+}
 struct cm_brush : public cm_geometry
 {
 	friend class CBrushModel;
@@ -224,7 +227,7 @@ struct cm_brush : public cm_geometry
 
 	friend void __cdecl adjacency_winding(adjacencyWinding_t* w, float* points, vec3_t normal, unsigned int i0, unsigned int i1, unsigned int i2);
 	friend std::unique_ptr<cm_geometry> CM_GetBrushPoints(const cbrush_t* brush, const fvec3& poly_col);
-	friend class IValue* WorldBrushes(struct CRuntimeContext* const ctx, [[maybe_unused]] IValue* _this);
+	friend class IValue* WorldBrushes(Varjus::CRuntimeContext* const ctx, [[maybe_unused]] IValue* _this);
 	cbrush_t* brush = {};
 
 protected:
@@ -246,7 +249,7 @@ private:
 struct cm_terrain : public cm_geometry
 {
 	friend class CBrushModel;
-	friend class IValue* WorldTerrain(struct CRuntimeContext* const ctx, [[maybe_unused]] IValue* _this);
+	friend class IValue* WorldTerrain(Varjus::CRuntimeContext* const ctx, [[maybe_unused]] IValue* _this);
 
 	~cm_terrain() = default;
 
@@ -275,7 +278,7 @@ private:
 
 struct cm_model : public cm_geometry
 {
-	friend class IValue* WorldModels(struct CRuntimeContext* const ctx, [[maybe_unused]] IValue* _this);
+	friend class IValue* WorldModels(Varjus::CRuntimeContext* const ctx, [[maybe_unused]] IValue* _this);
 
 	cm_model(const char* _name, const fvec3& _origin, const fvec3& _angles, float _modelscale) : 
 		name(_name), origin(_origin), angles(_angles), modelscale(_modelscale) {}

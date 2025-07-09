@@ -9,16 +9,16 @@
 
 #include <ranges>
 
-auto ToColor(CProgramRuntime* const rt, const IValue* v, float* receiver) {
+auto ToColor(Varjus::CProgramRuntime* const rt, const IValue* v, float* receiver) {
 	auto asArray = v->ToArray();
 
 	auto& vars = asArray->Internal()->GetContent().GetVariables();
 	if (vars.size() != 4)
-		throw CRuntimeError(rt, VSL("expected 4 elements for the array"));
+		throw Varjus::CRuntimeError(rt, VSL("expected 4 elements for the array"));
 
 	for (std::size_t i{}; auto & var : vars | std::views::take(4)) {
 		if (!var->GetValue()->IsArithmetic())
-			throw CRuntimeError(rt, VSL("expected an arithmetic type"));
+			throw Varjus::CRuntimeError(rt, VSL("expected an arithmetic type"));
 
 		receiver[i++] = static_cast<float>(var->GetValue()->ToDouble());
 	}
@@ -28,20 +28,20 @@ auto ToColor(CProgramRuntime* const rt, const IValue* v, float* receiver) {
 
 VARJUS_DEFINE_METHOD(WorldDebugString, ctx, _this, args)
 {
-	if (args[0]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected origin to be an array"));
+	if (args[0]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected origin to be an array"));
 
-	if (args[1]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected color to be an array"));
+	if (args[1]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected color to be an array"));
 
 	if (!args[2]->IsArithmetic())
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected scale to be arithmetic"));
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected scale to be arithmetic"));
 
-	if (args[3]->Type() != t_string)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected text to be a string"));
+	if (args[3]->Type() != Varjus::t_string)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected text to be a string"));
 
 	if (!args[4]->IsArithmetic())
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected duration to be arithmetic"));
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected duration to be arithmetic"));
 
 	float col[4]{};
 	CL_AddDebugString(0, IsVecArray(ctx->m_pRuntime, args[0]), ToColor(ctx->m_pRuntime, args[1], col),
@@ -52,20 +52,20 @@ VARJUS_DEFINE_METHOD(WorldDebugString, ctx, _this, args)
 
 VARJUS_DEFINE_METHOD(WorldDebugLine, ctx, _this, args)
 {
-	if (args[0]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected start to be an array"));
+	if (args[0]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected start to be an array"));
 
-	if (args[1]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected end to be an array"));
+	if (args[1]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected end to be an array"));
 
-	if (args[2]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected color to be an array"));
+	if (args[2]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected color to be an array"));
 
 	if (!args[3]->IsBooleanConvertible())
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected depthtest to be boolean convertible"));
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected depthtest to be boolean convertible"));
 
 	if (!args[4]->IsArithmetic())
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected duration to be arithmetic"));
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected duration to be arithmetic"));
 
 	float col[4]{};
 

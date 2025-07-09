@@ -12,20 +12,20 @@
 VARJUS_DEFINE_METHOD(WorldTrace, ctx, _this, args)
 {
 
-	if (args[0]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected mins to be an array"));
+	if (args[0]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected mins to be an array"));
 
-	if (args[1]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected maxs to be an array"));
+	if (args[1]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected maxs to be an array"));
 
-	if (args[2]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected start to be an array"));
+	if (args[2]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected start to be an array"));
 
-	if (args[3]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected end to be an array"));
+	if (args[3]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected end to be an array"));
 
 	if (!args[4]->IsIntegral())
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected mask to be integral"));
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected mask to be integral"));
 
 	const auto start = IsVecArray(ctx->m_pRuntime, args[2]);
 	const auto end = IsVecArray(ctx->m_pRuntime, args[3]);
@@ -52,17 +52,17 @@ VARJUS_DEFINE_METHOD(WorldTrace, ctx, _this, args)
 VARJUS_DEFINE_METHOD(WorldPlayerTrace, ctx, _this, args)
 {
 
-	if (args[0]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected mins to be an array"));
+	if (args[0]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected mins to be an array"));
 
-	if (args[1]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected maxs to be an array"));
+	if (args[1]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected maxs to be an array"));
 
-	if (args[2]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected start to be an array"));
+	if (args[2]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected start to be an array"));
 
-	if (args[3]->Type() != t_array)
-		throw CRuntimeError(ctx->m_pRuntime, VSL("expected end to be an array"));
+	if (args[3]->Type() != Varjus::t_array)
+		throw Varjus::CRuntimeError(ctx->m_pRuntime, VSL("expected end to be an array"));
 
 	const auto start = IsVecArray(ctx->m_pRuntime, args[2]);
 	const auto end = IsVecArray(ctx->m_pRuntime, args[3]);

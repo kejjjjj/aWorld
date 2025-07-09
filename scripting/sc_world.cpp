@@ -16,7 +16,7 @@
 #include <cm/cm_model.hpp>
 
 
-CArrayValue* GenerateWindingArray(CProgramRuntime* const rt, [[maybe_unused]]const std::vector<cm_winding>& w)
+CArrayValue* GenerateWindingArray(Varjus::CProgramRuntime* const rt, [[maybe_unused]]const std::vector<cm_winding>& w)
 {
 	IValues values;
 
@@ -29,7 +29,7 @@ CArrayValue* GenerateWindingArray(CProgramRuntime* const rt, [[maybe_unused]]con
 
 	return CArrayValue::Construct(rt, std::move(values));
 }
-CArrayValue* GenerateTriangleArray(CProgramRuntime* const rt, [[maybe_unused]] const std::vector<cm_triangle>& tris)
+CArrayValue* GenerateTriangleArray(Varjus::CProgramRuntime* const rt, [[maybe_unused]] const std::vector<cm_triangle>& tris)
 {
 	IValues values;
 
@@ -150,10 +150,10 @@ VARJUS_DEFINE_STATIC_OBJECT(WorldObject, receiver) {
 	receiver.AddMethod("debug_line", WorldDebugLine, 5);
 }
 
-Success SC_AddWorldObjects(Varjus::State& state)
+Varjus::Success SC_AddWorldObjects(Varjus::State& state)
 {
 	if (!state.AddNewStaticObject(VSL("world"), WorldObject))
-		return failure;
+		return Varjus::failure;
 
-	return success;
+	return Varjus::success;
 }

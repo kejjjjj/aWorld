@@ -2,6 +2,11 @@
 
 #include <vector>
 
+namespace Varjus
+{
+	struct CRuntimeContext;
+}
+
 using IValues = std::vector<class IValue*>;
-class IValue* WorldDebugString(struct CRuntimeContext* const ctx, IValue* _this, const IValues& args);
-class IValue* WorldDebugLine(struct CRuntimeContext* const ctx, IValue* _this, const IValues& args);
+IValue* WorldDebugString(Varjus::CRuntimeContext* const ctx, IValue* _this, const IValues& args);
+IValue* WorldDebugLine(Varjus::CRuntimeContext* const ctx, IValue* _this, const IValues& args);
